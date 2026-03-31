@@ -80,4 +80,26 @@ public class PlayerController : MonoBehaviour
         Quaternion targetRotation = Quaternion.Euler(0, 0, targetAngle);
         transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, currentRotSpeed * Time.deltaTime);
     }
+
+    private bool isDead = false;
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (isDead) return;
+
+        if (collision.gameObject.CompareTag("Ground") ||
+            collision.gameObject.CompareTag("Ceiling"))
+        {
+            GameEvents.ObstacleHit();
+        }
+    }
+    public void ResetPlayer()
+    {
+        transform.position = new Vector3(-7f, 0.2f, 0f);
+
+        Rigidbody2D rb = GetComponent<Rigidbody2D>();
+        rb.linearVelocity = Vector2.zero;
+
+        transform.rotation = Quaternion.identity;
+    }
 }
