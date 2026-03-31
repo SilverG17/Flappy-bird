@@ -1,22 +1,15 @@
 using UnityEngine;
-
-[RequireComponent(typeof(BoxCollider2D))]
 public class Obstacle : MonoBehaviour, IPoolable
 {
     [Header("Child references")]
     [SerializeField] private Transform topPipe;
     [SerializeField] private Transform bottomPipe;
-
-    [SerializeField] private float pipeHeight = 8f;
-
+    [SerializeField] private float pipeHeight = 10f;
     public bool IsActive => gameObject.activeSelf;
-
     public void OnSpawn()   => gameObject.SetActive(true);
     public void OnDespawn() => gameObject.SetActive(false);
-
     private float _scrollSpeed;
     private float _despawnX;
-
     public float ScrollSpeed
     {
         get => _scrollSpeed;
@@ -60,11 +53,5 @@ public class Obstacle : MonoBehaviour, IPoolable
         var col = pipe.GetComponent<BoxCollider2D>();
         if (col != null)
             col.size = new Vector2(GameSettings.PIPE_WIDTH, height);
-    }
-
-    private void OnTriggerEnter2D(Collider2D other)
-    {
-        if (other.CompareTag("Player"))
-            GameEvents.ObstacleHit();
     }
 }

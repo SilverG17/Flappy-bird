@@ -9,8 +9,12 @@ public class ObstacleSpawner : MonoBehaviour
     [SerializeField] private Collectible collectiblePrefab;
 
     [Header("World bounds")]
-    [SerializeField] private float spawnX   =  12f;
-    [SerializeField] private float despawnX = -12f;
+    [SerializeField] private float spawnX   =  10f;
+    [SerializeField] private float despawnX = -10f;
+
+    [Header("Parallax sync")]
+    [Tooltip("Assign the foreground parallax layer so obstacles scroll at the same speed.")]
+    [SerializeField] private ParallaxRepeatingLayer foregroundLayer;
 
     [SerializeField] private float currentScrollSpeed;
     [SerializeField] private float survivalTime;
@@ -76,16 +80,23 @@ public class ObstacleSpawner : MonoBehaviour
     {
         if (!_isRunning) return;
 
-        float dt = Time.deltaTime;
-        survivalTime += dt;
+        survivalTime += Time.deltaTime;
 
-        float speedBoost = Mathf.Floor(survivalTime / GameSettings.SCALE_INTERVAL)
-                           * GameSettings.SPEED_INCREMENT;
-        currentScrollSpeed = Mathf.Min(
-            GameSettings.BASE_SCROLL_SPEED + speedBoost,
-            GameSettings.MAX_SCROLL_SPEED);
+        // Sync to the foreground parallax layer when assigned; otherwise self-ramp.
+        if (foregroundLayer != null)
+        {
+            currentScrollSpeed = foregroundLayer.CurrentSpeed;
+        }
+        else
+        {
+            float speedBoost = Mathf.Floor(survivalTime / GameSettings.SCALE_INTERVAL)
+                               * GameSettings.SPEED_INCREMENT;
+            currentScrollSpeed = Mathf.Min(
+                GameSettings.BASE_SCROLL_SPEED + speedBoost,
+                GameSettings.MAX_SCROLL_SPEED);
+        }
 
-        _spawnTimer += dt;
+        _spawnTimer += Time.deltaTime;
         if (_spawnTimer >= GameSettings.OBSTACLE_INTERVAL)
         {
             _spawnTimer = 0f;

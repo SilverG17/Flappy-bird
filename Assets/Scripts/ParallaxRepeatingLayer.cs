@@ -11,6 +11,8 @@ public class ParallaxRepeatingLayer : MonoBehaviour
     
     private float _currentScrollSpeed;
 
+    public float CurrentSpeed => _currentScrollSpeed * parallaxMultiplier;
+
     private void Awake()
     {
         _currentScrollSpeed = startScrollSpeed;
