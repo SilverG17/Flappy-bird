@@ -4,9 +4,9 @@ public static class GameSettings
     public const float BASE_SCROLL_SPEED    = 3f;
     public const float MAX_SCROLL_SPEED     = 6f;
 
-    public const float OBSTACLE_INTERVAL    = 2.0f;
-    public const float GAP_SIZE_MIN         = 2.5f;
-    public const float GAP_SIZE_MAX         = 3.5f;
+    public const float OBSTACLE_INTERVAL    = 4.0f;
+    public const float GAP_SIZE_MIN         = 3.5f;
+    public const float GAP_SIZE_MAX         = 5f;
     public const float GAP_MIN_Y            = -2.0f;
     public const float GAP_MAX_Y            =  2.0f;
     public const float SPAWN_X_OFFSET       = 10f;

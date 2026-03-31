@@ -10,6 +10,7 @@ public class Collectible : MonoBehaviour, IPoolable
     public bool IsActive => gameObject.activeSelf;
 
     public void OnSpawn() => gameObject.SetActive(true);
+
     public void OnDespawn()
     {
         gameObject.SetActive(false);
@@ -20,7 +21,6 @@ public class Collectible : MonoBehaviour, IPoolable
     private SpriteRenderer   _sr;
     private CircleCollider2D _col;
 
-    private float _scrollSpeed;
     private float _despawnX;
 
     private float _animTimer;
@@ -33,16 +33,17 @@ public class Collectible : MonoBehaviour, IPoolable
         _col.isTrigger = true;
     }
 
-    public void Setup(float spawnX, float gapCenterY, float scrollSpeed, float despawnX)
+    public void Setup(float spawnX, float gapCenterY, float despawnX)
     {
-        _scrollSpeed = scrollSpeed;
-        _despawnX    = despawnX;
+        _despawnX = despawnX;
         transform.position = new Vector3(spawnX, gapCenterY, transform.position.z);
     }
 
     private void Update()
     {
-        transform.position += Vector3.left * _scrollSpeed * Time.deltaTime;
+        float speed = ObstacleSpawner.Instance.CurrentSpeed;
+
+        transform.position += Vector3.left * speed * Time.deltaTime;
 
         if (transform.position.x < _despawnX)
         {
@@ -54,6 +55,7 @@ public class Collectible : MonoBehaviour, IPoolable
 
         _animTimer += Time.deltaTime;
         float frameDuration = 1f / GameSettings.COIN_ANIM_FPS;
+
         if (_animTimer >= frameDuration)
         {
             _animTimer -= frameDuration;

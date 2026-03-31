@@ -13,11 +13,12 @@ public class ObstacleSpawner : MonoBehaviour
     [SerializeField] private float despawnX = -10f;
 
     [Header("Parallax sync")]
-    [Tooltip("Assign the foreground parallax layer so obstacles scroll at the same speed.")]
     [SerializeField] private ParallaxRepeatingLayer foregroundLayer;
 
     [SerializeField] private float currentScrollSpeed;
     [SerializeField] private float survivalTime;
+
+    public float CurrentSpeed => currentScrollSpeed;
 
     private ObjectPool<Obstacle>    _obstaclePool;
     private ObjectPool<Collectible> _collectiblePool;
@@ -58,7 +59,7 @@ public class ObstacleSpawner : MonoBehaviour
     public void StartSpawning()
     {
         _isRunning   = true;
-        _spawnTimer  = GameSettings.OBSTACLE_INTERVAL;
+        _spawnTimer  = 0f;
         survivalTime = 0f;
     }
 
@@ -82,7 +83,6 @@ public class ObstacleSpawner : MonoBehaviour
 
         survivalTime += Time.deltaTime;
 
-        // Sync to the foreground parallax layer when assigned; otherwise self-ramp.
         if (foregroundLayer != null)
         {
             currentScrollSpeed = foregroundLayer.CurrentSpeed;
@@ -91,9 +91,12 @@ public class ObstacleSpawner : MonoBehaviour
         {
             float speedBoost = Mathf.Floor(survivalTime / GameSettings.SCALE_INTERVAL)
                                * GameSettings.SPEED_INCREMENT;
-            currentScrollSpeed = Mathf.Min(
+
+            float targetSpeed = Mathf.Min(
                 GameSettings.BASE_SCROLL_SPEED + speedBoost,
                 GameSettings.MAX_SCROLL_SPEED);
+
+            currentScrollSpeed = Mathf.Lerp(currentScrollSpeed, targetSpeed, Time.deltaTime);
         }
 
         _spawnTimer += Time.deltaTime;
@@ -110,12 +113,22 @@ public class ObstacleSpawner : MonoBehaviour
         float gapSize    = Random.Range(GameSettings.GAP_SIZE_MIN, GameSettings.GAP_SIZE_MAX);
 
         Obstacle obs = _obstaclePool.Get();
-        obs.Setup(spawnX, gapCenterY, gapSize, currentScrollSpeed, despawnX);
+        obs.Setup(spawnX, gapCenterY, gapSize, despawnX);
 
         Collectible coin = _collectiblePool.Get();
-        coin.Setup(spawnX, gapCenterY, currentScrollSpeed, despawnX);
+        coin.Setup(spawnX, gapCenterY, despawnX);
     }
 
-    public void ReturnObstacle(Obstacle obs)        => _obstaclePool?.Release(obs);
-    public void ReturnCollectible(Collectible coin)  => _collectiblePool?.Release(coin);
+    public void ReturnObstacle(Obstacle obs)       => _obstaclePool?.Release(obs);
+    public void ReturnCollectible(Collectible c)   => _collectiblePool?.Release(c);
+
+    private void OnEnable()
+    {
+        GameEvents.OnObstacleHit += StopSpawning;
+    }
+
+    private void OnDisable()
+    {
+        GameEvents.OnObstacleHit -= StopSpawning;
+    }
 }
