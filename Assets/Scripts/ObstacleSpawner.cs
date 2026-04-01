@@ -25,6 +25,12 @@ public class ObstacleSpawner : MonoBehaviour
 
     private float _spawnTimer;
     private bool  _isRunning;
+    private float speedMultiplier = 1f;
+
+    public void SetSpeedMultiplier(float value)
+    {
+        speedMultiplier = value;
+    }
 
     private void Awake()
     {
@@ -79,8 +85,6 @@ public class ObstacleSpawner : MonoBehaviour
 
     private void Update()
     {
-        if (!_isRunning) return;
-
         survivalTime += Time.deltaTime;
 
         if (foregroundLayer != null)
@@ -90,7 +94,7 @@ public class ObstacleSpawner : MonoBehaviour
         else
         {
             float speedBoost = Mathf.Floor(survivalTime / GameSettings.SCALE_INTERVAL)
-                               * GameSettings.SPEED_INCREMENT;
+                            * GameSettings.SPEED_INCREMENT;
 
             float targetSpeed = Mathf.Min(
                 GameSettings.BASE_SCROLL_SPEED + speedBoost,
@@ -98,6 +102,9 @@ public class ObstacleSpawner : MonoBehaviour
 
             currentScrollSpeed = Mathf.Lerp(currentScrollSpeed, targetSpeed, Time.deltaTime);
         }
+
+        currentScrollSpeed *= speedMultiplier;
+        if (!_isRunning) return;
 
         _spawnTimer += Time.deltaTime;
         if (_spawnTimer >= GameSettings.OBSTACLE_INTERVAL)
@@ -113,10 +120,12 @@ public class ObstacleSpawner : MonoBehaviour
         float gapSize    = Random.Range(GameSettings.GAP_SIZE_MIN, GameSettings.GAP_SIZE_MAX);
 
         Obstacle obs = _obstaclePool.Get();
+        obs.OnSpawn();
         obs.Setup(spawnX, gapCenterY, gapSize, despawnX);
 
         Collectible coin = _collectiblePool.Get();
-        coin.Setup(spawnX, gapCenterY, despawnX);
+        coin.OnSpawn();
+        coin.Setup(spawnX, gapCenterY, despawnX, obs);
     }
 
     public void ReturnObstacle(Obstacle obs)       => _obstaclePool?.Release(obs);

@@ -6,6 +6,7 @@ public class Collectible : MonoBehaviour, IPoolable
 {
     [Header("Animation")]
     [SerializeField] private Sprite[] frames;
+    private Obstacle linkedObstacle;
 
     public bool IsActive => gameObject.activeSelf;
 
@@ -33,10 +34,11 @@ public class Collectible : MonoBehaviour, IPoolable
         _col.isTrigger = true;
     }
 
-    public void Setup(float spawnX, float gapCenterY, float despawnX)
+    public void Setup(float spawnX, float gapCenterY, float despawnX, Obstacle obstacle)
     {
         _despawnX = despawnX;
-        transform.position = new Vector3(spawnX, gapCenterY, transform.position.z);
+        transform.position = new Vector3(spawnX, gapCenterY, 0f);
+        linkedObstacle = obstacle;
     }
 
     private void Update()
@@ -61,6 +63,14 @@ public class Collectible : MonoBehaviour, IPoolable
             _animTimer -= frameDuration;
             _currentFrame = (_currentFrame + 1) % frames.Length;
             _sr.sprite = frames[_currentFrame];
+        }
+        if (linkedObstacle != null)
+        {
+            Vector3 pos = transform.position;
+            // theo obstacle
+            pos.y = linkedObstacle.transform.position.y;
+            pos.y += Mathf.Sin(Time.time * 3f) * 0.2f;
+            transform.position = pos;
         }
     }
 

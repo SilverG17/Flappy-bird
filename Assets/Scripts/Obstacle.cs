@@ -5,7 +5,12 @@ public class Obstacle : MonoBehaviour, IPoolable
     [Header("Child references")]
     [SerializeField] private Transform topPipe;
     [SerializeField] private Transform bottomPipe;
+    [SerializeField] private float moveAmplitude = 1f;
+    [SerializeField] private float moveSpeed = 2f;
 
+    private float baseY;
+    private float timeOffset;
+    public float CurrentOffsetY { get; private set; }
     public bool IsActive => gameObject.activeSelf;
 
     public void OnSpawn()   => gameObject.SetActive(true);
@@ -23,18 +28,21 @@ public class Obstacle : MonoBehaviour, IPoolable
     {
         _despawnX = despawnX;
 
-        transform.position = new Vector3(spawnX, 0f, transform.position.z);
+        transform.position = new Vector3(spawnX, gapCenterY, transform.position.z);
 
         float halfGap = gapSize * 0.5f;
 
         float topHalfHeight = GetPipeHalfHeight(topPipe);
         float botHalfHeight = GetPipeHalfHeight(bottomPipe);
 
-        float topY = gapCenterY + halfGap + topHalfHeight;
-        float botY = gapCenterY - halfGap - botHalfHeight;
+        float topY = halfGap + topHalfHeight;
+        float botY = -halfGap - botHalfHeight;
 
         topPipe.localPosition    = new Vector3(0f, topY, 0f);
         bottomPipe.localPosition = new Vector3(0f, botY, 0f);
+
+        baseY = gapCenterY;
+        timeOffset = Random.Range(0f, 10f);
     }
 
     private float GetPipeHalfHeight(Transform pipe)
@@ -47,9 +55,17 @@ public class Obstacle : MonoBehaviour, IPoolable
     {
         float speed = ObstacleSpawner.Instance.CurrentSpeed;
 
-        transform.position += Vector3.left * speed * Time.deltaTime;
+        // di chuyển ngang
+        Vector3 pos = transform.position;
+        pos.x += -speed * Time.deltaTime;
 
-        if (transform.position.x < _despawnX)
+        // dao động Y
+        CurrentOffsetY = Mathf.Sin((Time.time + timeOffset) * moveSpeed) * moveAmplitude;
+        pos.y = baseY + CurrentOffsetY;
+
+        transform.position = pos;
+
+        if (pos.x < _despawnX)
         {
             ObstacleSpawner.Instance?.ReturnObstacle(this);
         }

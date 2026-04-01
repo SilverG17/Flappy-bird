@@ -10,7 +10,11 @@ public class GameManager : MonoBehaviour
     [Header("References")]
     [SerializeField] private PlayerController player;
     [SerializeField] private ObstacleSpawner spawner;
+    [SerializeField] private GameObject startMenu;
+    [SerializeField] private CanvasGroup startMenuCanvas;
+    [SerializeField] private float menuScrollMultiplier = 0.5f;
 
+    private bool isPlaying = false;
     private int score = 0;
     private bool isGameOver = false;
 
@@ -19,7 +23,27 @@ public class GameManager : MonoBehaviour
         Time.timeScale = 1f;
         score = 0;
         scoreText.text = "0";
+        player.gameObject.SetActive(true);
+        startMenu.SetActive(true);
         gameOverPanel.SetActive(false);
+        spawner.StopSpawning();
+        if (startMenuCanvas != null)
+        {
+            startMenuCanvas.alpha = 1f;
+            startMenuCanvas.blocksRaycasts = true;
+        }
+        player.SetIdle(true);
+        spawner.SetSpeedMultiplier(menuScrollMultiplier);
+    }
+
+    public void StartGame()
+    {
+        isPlaying = true;
+        StartCoroutine(FadeOutMenu());
+        spawner.SetSpeedMultiplier(1f); 
+        spawner.StartSpawning();
+        player.SetIdle(false); 
+        player.ResetPlayer();
     }
 
     private void OnEnable()
@@ -38,6 +62,13 @@ public class GameManager : MonoBehaviour
     {
         bool isClick = Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame;
         bool isSpace = Keyboard.current != null && Keyboard.current.spaceKey.wasPressedThisFrame;
+
+        // 👉 Nếu chưa vào game thì click để start luôn
+        if (!isPlaying && (isClick || isSpace))
+        {
+            StartGame();
+            return;
+        }
 
         if (isGameOver && (isClick || isSpace))
         {
@@ -64,6 +95,8 @@ public class GameManager : MonoBehaviour
 
     private void RestartGame()
     {
+        isPlaying = true;
+
         isGameOver = false;
         Time.timeScale = 1f;
 
@@ -76,5 +109,24 @@ public class GameManager : MonoBehaviour
 
         spawner.ResetAll();
         spawner.StartSpawning();
+    }
+
+    private System.Collections.IEnumerator FadeOutMenu()
+    {
+        float t = 0f;
+        float duration = 0.5f;
+
+        while (t < duration)
+        {
+            t += Time.deltaTime;
+            float alpha = 1f - (t / duration);
+
+            if (startMenuCanvas != null)
+                startMenuCanvas.alpha = alpha;
+
+            yield return null;
+        }
+
+        startMenu.SetActive(false);
     }
 }

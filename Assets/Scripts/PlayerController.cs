@@ -1,9 +1,13 @@
 using Unity.VisualScripting;
+#if UNITY_EDITOR
 using UnityEditor.Callbacks;
+#endif
 using UnityEngine;
 using UnityEngine.InputSystem;
+
 public class PlayerController : MonoBehaviour
 {
+    [SerializeField] private ParticleSystem flapEffect;
     [Header("Physics Settings")]
     public float Flap_strength = 5f;
     private Rigidbody2D rb;
@@ -20,6 +24,13 @@ public class PlayerController : MonoBehaviour
     private float timer;
     private int currentFrame;
     private bool isFlapping;
+    private bool isIdle = false;
+    private float idleTimer = 0f;
+
+    public void SetIdle(bool value)
+    {
+        isIdle = value;
+    }
 
     void Start()
     {
@@ -32,15 +43,28 @@ public class PlayerController : MonoBehaviour
         bool isSpacePressed = Keyboard.current != null && Keyboard.current.spaceKey.wasPressedThisFrame;
         bool isMouseClick = Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame;
         
-        if (isSpacePressed || isMouseClick)
+        if ((isSpacePressed || isMouseClick) && !isIdle)
         {
             rb.linearVelocity = Vector2.zero;
             rb.AddForce(Vector2.up * Flap_strength, ForceMode2D.Impulse);
             isFlapping = true;
+
+            if (flapEffect != null)
+            {
+                flapEffect.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+                flapEffect.Play();
+            }
         }
         if (rb.linearVelocity.y <=0)
         {
             isFlapping = false;
+        }
+        if (isIdle)
+        {
+            idleTimer += Time.deltaTime;
+            float yOffset = Mathf.Sin(idleTimer * 2f) * 0.5f;
+            transform.position = new Vector3(transform.position.x, yOffset, transform.position.z);
+            return;
         }
         
         Sprite[] currentAnim;
@@ -97,7 +121,7 @@ public class PlayerController : MonoBehaviour
     {
         transform.position = new Vector3(-7f, 0.2f, 0f);
 
-        Rigidbody2D rb = GetComponent<Rigidbody2D>();
+        rb.linearVelocity = Vector2.zero;
         rb.linearVelocity = Vector2.zero;
 
         transform.rotation = Quaternion.identity;
