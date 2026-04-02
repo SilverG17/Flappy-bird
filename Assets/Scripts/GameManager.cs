@@ -61,7 +61,6 @@ public class GameManager : MonoBehaviour
     private void Update()
     {
         if (SettingsMenuUI.IsOpen) return;
-
         bool isClick = Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame;
         bool isSpace = Keyboard.current != null && Keyboard.current.spaceKey.wasPressedThisFrame;
 

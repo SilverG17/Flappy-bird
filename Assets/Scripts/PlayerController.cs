@@ -42,7 +42,6 @@ public class PlayerController : MonoBehaviour
     void Update()
     {
         if (SettingsMenuUI.IsOpen) return;
-
         bool isSpacePressed = Keyboard.current != null && Keyboard.current.spaceKey.wasPressedThisFrame;
         bool isMouseClick = Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame;
         
